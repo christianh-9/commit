@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: commit-db
+    environment:
+      POSTGRES_USER: commit
+      POSTGRES_PASSWORD: commit
+      POSTGRES_DB: commit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
