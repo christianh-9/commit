@@ -1,14 +1,11 @@
-from typing import Annotated
-
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.api.auth import router as auth_router
+from app.api.deps import DbSession
 
 app = FastAPI(title="Commit API")
-
-DbSession = Annotated[AsyncSession, Depends(get_db)]
+app.include_router(auth_router)
 
 
 @app.get("/health")
