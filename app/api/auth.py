@@ -7,7 +7,7 @@ from sqlalchemy import select
 from app.api.deps import CurrentUser, DbSession
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import User
-from app.schemas.user import Token, UserCreate, UserRead
+from app.schemas.user import Token, UserCreate, UserRead, UserUpdate
 
 router = APIRouter(tags=["auth"])
 
@@ -52,4 +52,14 @@ async def login(
 
 @router.get("/users/me", response_model=UserRead)
 async def read_me(user: CurrentUser) -> User:
+    return user
+
+
+@router.patch("/users/me", response_model=UserRead)
+async def update_me(data: UserUpdate, user: CurrentUser, db: DbSession) -> User:
+    changes = data.model_dump(exclude_unset=True, exclude_none=True)
+    for field, value in changes.items():
+        setattr(user, field, value)
+    await db.commit()
+    await db.refresh(user)
     return user
