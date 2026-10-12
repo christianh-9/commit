@@ -3,11 +3,13 @@ from sqlalchemy import text
 
 from app.api.auth import router as auth_router
 from app.api.deps import DbSession
+from app.api.stats import router as stats_router
 from app.api.workouts import router as workouts_router
 
 app = FastAPI(title="Commit API")
 app.include_router(auth_router)
 app.include_router(workouts_router)
+app.include_router(stats_router)
 
 
 @app.get("/health")
