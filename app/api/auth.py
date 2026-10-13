@@ -40,7 +40,11 @@ async def login(
     form: Annotated[OAuth2PasswordRequestForm, Depends()], db: DbSession
 ) -> Token:
     user = await db.scalar(select(User).where(User.email == form.username.lower()))
-    if user is None or not verify_password(form.password, user.password_hash):
+    if (
+        user is None
+        or user.password_hash is None
+        or not verify_password(form.password, user.password_hash)
+    ):
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
