@@ -1,11 +1,15 @@
 import { History, House, Plus, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Navigate, NavLink, Outlet } from 'react-router'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router'
 import { token } from '@/api/client'
 import { cn } from '@/lib/utils'
+import Landing from '@/pages/landing'
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  return token.get() ? children : <Navigate to="/login" replace />
+  const { pathname } = useLocation()
+  if (token.get()) return children
+  // Signed-out visitors to the home page see what Commit is; other pages go to login.
+  return pathname === '/' ? <Landing /> : <Navigate to="/login" replace />
 }
 
 const tabs = [

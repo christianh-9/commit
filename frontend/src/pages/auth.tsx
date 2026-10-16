@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { api, call, token } from '@/api/client'
 import { keys } from '@/api/queries'
-import { DaysPicker, Field, TimezoneOptions } from '@/components/field'
+import { DaysPicker, Field, PasswordInput, TimezoneOptions } from '@/components/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { showApiError } from '@/lib/forms'
@@ -64,7 +64,7 @@ function AuthShell({ title, children, footer }: { title: string; children: React
 }
 
 /** A plain link: the browser has to leave the app for Google's sign-in page. */
-function GoogleButton() {
+export function GoogleButton() {
   return (
     <Button asChild variant="outline" size="lg" className="bg-card font-semibold">
       <a href="/api/auth/google/login">
@@ -128,7 +128,7 @@ export function AuthCallback() {
 }
 
 /** Five heatmap squares stepping up the green ramp. */
-function BrandMark() {
+export function BrandMark() {
   return (
     <div className="flex items-center gap-2" aria-label="Commit">
       <div className="flex gap-1" aria-hidden>
@@ -180,7 +180,7 @@ export function Login() {
           <Input id="username" type="email" autoComplete="email" inputMode="email" aria-invalid={!!errors.username} aria-describedby="username-error" {...form.register('username')} />
         </Field>
         <Field id="password" label="Password" error={errors.password?.message}>
-          <Input id="password" type="password" autoComplete="current-password" aria-invalid={!!errors.password} aria-describedby="password-error" {...form.register('password')} />
+          <PasswordInput id="password" autoComplete="current-password" aria-invalid={!!errors.password} aria-describedby="password-error" {...form.register('password')} />
         </Field>
         <Button type="submit" size="lg" disabled={mutation.isPending}>
           {mutation.isPending ? 'Logging in…' : 'Log in'}
@@ -229,7 +229,7 @@ export function Register() {
           <Input id="email" type="email" autoComplete="email" inputMode="email" aria-invalid={!!errors.email} aria-describedby="email-error" {...form.register('email')} />
         </Field>
         <Field id="password" label="Password" error={errors.password?.message} hint="At least 8 characters">
-          <Input id="password" type="password" autoComplete="new-password" aria-invalid={!!errors.password} aria-describedby="password-error" {...form.register('password')} />
+          <PasswordInput id="password" autoComplete="new-password" aria-invalid={!!errors.password} aria-describedby="password-error" {...form.register('password')} />
         </Field>
         <Field id="target_days_per_week" label="Days per week you want to train" error={errors.target_days_per_week?.message}>
           <Controller
