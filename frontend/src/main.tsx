@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/sonner'
 import History from '@/pages/history'
 import Home from '@/pages/home'
 import Log from '@/pages/log'
-import { Login, Register } from '@/pages/auth'
+import { AuthCallback, Login, Register } from '@/pages/auth'
 import Settings from '@/pages/settings'
 import './index.css'
 
@@ -24,6 +24,7 @@ const queryClient = new QueryClient({
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
+  { path: '/auth/callback', element: <AuthCallback /> },
   {
     element: (
       <RequireAuth>
