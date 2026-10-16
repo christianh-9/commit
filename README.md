@@ -2,7 +2,7 @@
 
 A workout tracker built for your phone. You log what you lift, pick how many days a week you want to train, and the app keeps a weekly streak and a GitHub-style heatmap of the past year.
 
-Live at https://commit-gyu0.onrender.com
+**[Live site](https://commit-gyu0.onrender.com/)**
 
 ## Features
 
