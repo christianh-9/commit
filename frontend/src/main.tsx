@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner'
 import History from '@/pages/history'
 import Home from '@/pages/home'
 import Log from '@/pages/log'
+import Privacy from '@/pages/privacy'
 import { AuthCallback, Login, Register } from '@/pages/auth'
 import Settings from '@/pages/settings'
 import './index.css'
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
   { path: '/auth/callback', element: <AuthCallback /> },
+  { path: '/privacy', element: <Privacy /> },
   {
     element: (
       <RequireAuth>

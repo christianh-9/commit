@@ -56,6 +56,9 @@ function AuthShell({ title, children, footer }: { title: string; children: React
         {children}
       </div>
       <p className="text-center text-sm text-muted-foreground">{footer}</p>
+      <Link to="/privacy" className="text-center text-xs text-muted-foreground underline-offset-4 hover:underline">
+        Privacy policy
+      </Link>
     </main>
   )
 }
