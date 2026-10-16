@@ -36,7 +36,16 @@ async def get_or_create_oauth_user(
     existing = await db.scalar(select(User).where(User.email == email))
 
     if existing is not None:
-        raise OAuthError("An account with this email already exists.")
+        # Safe because the email is verified above: Google vouches the person owns it.
+        db.add(
+            OAuthAccount(
+                user_id=existing.id,
+                provider=provider,
+                provider_user_id=provider_user_id,
+            )
+        )
+        await db.commit()
+        return existing, False
 
     display_name = (name or email.split("@")[0]).strip()[:50] or "Lifter"
     user = User(

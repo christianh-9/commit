@@ -58,20 +58,32 @@ async def test_unverified_email_is_rejected(db: AsyncSession) -> None:
     assert await count(db, User) == 0
 
 
-async def test_existing_password_account_is_not_linked(db: AsyncSession) -> None:
-    db.add(
-        User(
-            email="taken@example.com",
-            password_hash="not-a-real-hash",
-            display_name="Taken",
-            target_days_per_week=3,
-        )
+async def test_verified_email_links_existing_password_account(db: AsyncSession) -> None:
+    existing = User(
+        email="taken@example.com",
+        password_hash="not-a-real-hash",
+        display_name="Taken",
+        target_days_per_week=5,
     )
+    db.add(existing)
     await db.commit()
 
-    with pytest.raises(OAuthError):
-        await google_login(db, email="Taken@Example.com")
-    assert await count(db, OAuthAccount) == 0
+    user, created = await google_login(db, email="Taken@Example.com")
+    assert created is False
+    assert user.id == existing.id
+    # Linking keeps the account as it was, so password login still works.
+    assert user.password_hash == "not-a-real-hash"
+    assert user.target_days_per_week == 5
+    assert await count(db, User) == 1
+
+    link = await db.scalar(select(OAuthAccount))
+    assert link is not None
+    assert link.user_id == existing.id
+
+    # The next Google sign-in finds the account through the link.
+    again, created = await google_login(db, email="Taken@Example.com")
+    assert again.id == existing.id
+    assert await count(db, OAuthAccount) == 1
 
 
 async def test_display_name_is_trimmed_or_falls_back_to_email(db: AsyncSession) -> None:
