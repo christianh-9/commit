@@ -148,19 +148,3 @@ DATABASE_URL='postgresql+asyncpg://...?ssl=require' uv run alembic upgrade head
 
 The API runs on Render's free tier, which sleeps after 15 minutes without requests. An UptimeRobot monitor on `/api/docs` every 5 minutes keeps it awake. That page doesn't touch the database, so Neon can still scale to zero when nobody is using the app.
 
-## Project layout
-
-```
-app/
-  api/          routes: auth, Google OAuth, workouts, stats
-  core/         settings, database engine, password hashing and JWTs, OAuth client
-  models/       SQLAlchemy models
-  schemas/      Pydantic request and response models
-  services/     streak calculation, Google account find-or-create
-alembic/        migrations, including the exercise seed data
-tests/          pytest suite
-frontend/
-  src/api/      generated schema types, API client, queries
-  src/pages/    home, log, history, settings, login/register, privacy, public landing page
-  src/lib/      heatmap and form helpers, with tests
-```
