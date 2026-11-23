@@ -2,8 +2,6 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { BrandMark, GoogleButton } from '@/pages/auth'
 
-const GREENS = ['#e4e9e5', '#9be9a8', '#40c463', '#30a14e', '#216e39']
-
 // fake data for the preview heatmap
 const sample = Array.from({ length: 7 * 22 }, (_, i) => {
   const n = (i * 37 + (i % 7) * 11) % 17
@@ -40,7 +38,7 @@ export default function Landing() {
       <div aria-hidden className="overflow-hidden rounded-2xl border bg-card p-4">
         <div className="grid grid-flow-col grid-rows-7 justify-start gap-[3px]">
           {sample.map((level, i) => (
-            <span key={i} className="size-3 rounded-[3px]" style={{ background: GREENS[level] }} />
+            <span key={i} className="size-3 rounded-[3px]" style={{ background: `var(--heat-${level})` }} />
           ))}
         </div>
       </div>
