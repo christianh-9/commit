@@ -18,7 +18,7 @@ api.use({
     return request
   },
   onResponse({ request, response }) {
-    // A 401 from /auth/login means wrong credentials, not an expired session.
+    // 401 on login means a wrong password, not an expired session
     if (response.status === 401 && !request.url.endsWith('/auth/login')) {
       token.clear()
       if (location.pathname !== '/login') location.assign('/login')
@@ -37,7 +37,6 @@ export class ApiError extends Error {
   }
 }
 
-/** Resolve an openapi-fetch call to its data, or throw ApiError. */
 export async function call<T>(req: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
   const { data, error, response } = await req
   if (!response.ok) throw new ApiError(response.status, (error as { detail?: unknown } | undefined)?.detail)

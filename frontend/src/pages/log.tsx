@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { showApiError } from '@/lib/forms'
 import { isoDate, type Exercise } from '@/lib/logic'
 
-// Inputs hold strings; these parse them into the numbers the API expects.
+// inputs are strings, convert them to numbers
 const optionalNumber = (schema: z.ZodNumber) =>
   z
     .string()
@@ -58,7 +58,7 @@ export default function Log() {
   const today = isoDate(new Date())
   const form = useForm<FormIn, unknown, FormOut>({
     resolver: zodResolver(schema),
-    // onBlur also stops useFieldArray from validating on append, which flagged every new empty set.
+    // onBlur so a newly added set isn't flagged as empty right away
     mode: 'onBlur',
     reValidateMode: 'onBlur',
     defaultValues: { performed_on: today, duration_min: '', notes: '', entries: [] },
@@ -72,7 +72,7 @@ export default function Log() {
         api.POST('/workouts', {
           body: {
             ...rest,
-            // Flattened in on-screen order; the server numbers sets 1..n.
+            // server numbers the sets in this order
             sets: entries.flatMap((e) => e.sets.map((s) => ({ exercise_id: e.exercise_id, reps: s.reps, weight: s.weight }))),
           },
         }),
@@ -223,7 +223,7 @@ function ExerciseBlock({
         type="button"
         variant="ghost"
         className="h-12 w-full rounded-t-none border-t text-primary"
-        // Repeat the last set's numbers: most sets match the one before.
+        // copy the previous set
         onClick={() => {
           const last = getValues(`entries.${index}.sets`).at(-1)
           sets.append(last ? { ...last } : emptySet)
@@ -237,12 +237,12 @@ function ExerciseBlock({
 
 function ExercisePicker({ open, onOpenChange, onPick }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (e: Exercise) => void }) {
   const { data, isPending } = useExercises()
-  // Object.groupBy needs iOS 17.4+, so group by hand.
+  // Object.groupBy needs iOS 17.4+
   const groups: Record<string, Exercise[]> = {}
   for (const e of data ?? []) (groups[e.muscle_group] ??= []).push(e)
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange} title="Add exercise" description="Search exercises by name or muscle group" className="top-4">
-      {/* Substring match: cmdk's default fuzzy match lets "pre" find "Hip Thrust". */}
+      {/* cmdk's fuzzy match is too loose ("pre" matched "Hip Thrust") */}
       <Command filter={(value, search) => (value.toLowerCase().includes(search.trim().toLowerCase()) ? 1 : 0)}>
       <CommandInput placeholder="Search exercises" />
       <CommandList className="max-h-[min(70dvh,32rem)]">

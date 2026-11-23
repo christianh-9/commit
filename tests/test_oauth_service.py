@@ -71,7 +71,7 @@ async def test_verified_email_links_existing_password_account(db: AsyncSession) 
     user, created = await google_login(db, email="Taken@Example.com")
     assert created is False
     assert user.id == existing.id
-    # Linking keeps the account as it was, so password login still works.
+    # password login still works
     assert user.password_hash == "not-a-real-hash"
     assert user.target_days_per_week == 5
     assert await count(db, User) == 1
@@ -80,7 +80,7 @@ async def test_verified_email_links_existing_password_account(db: AsyncSession) 
     assert link is not None
     assert link.user_id == existing.id
 
-    # The next Google sign-in finds the account through the link.
+    # found through the link this time
     again, created = await google_login(db, email="Taken@Example.com")
     assert again.id == existing.id
     assert await count(db, OAuthAccount) == 1

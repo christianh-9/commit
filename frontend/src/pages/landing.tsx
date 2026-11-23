@@ -4,7 +4,7 @@ import { BrandMark, GoogleButton } from '@/pages/auth'
 
 const GREENS = ['#e4e9e5', '#9be9a8', '#40c463', '#30a14e', '#216e39']
 
-// A fixed, made-up year of training so the page shows what the heatmap looks like.
+// fake data for the preview heatmap
 const sample = Array.from({ length: 7 * 22 }, (_, i) => {
   const n = (i * 37 + (i % 7) * 11) % 17
   return n < 7 ? 0 : n < 10 ? 1 : n < 13 ? 2 : n < 15 ? 3 : 4
@@ -25,7 +25,6 @@ const features = [
   },
 ]
 
-/** Public home page for signed-out visitors: says what Commit is and how to start. */
 export default function Landing() {
   return (
     <main className="mx-auto grid max-w-lg gap-10 px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-12">

@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
-// Shown publicly as the address for privacy questions and deletion requests.
 const CONTACT_EMAIL = 'hongchristian99@gmail.com'
 const UPDATED = 'October 15, 2026'
 

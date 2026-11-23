@@ -36,7 +36,7 @@ async def get_or_create_oauth_user(
     existing = await db.scalar(select(User).where(User.email == email))
 
     if existing is not None:
-        # Safe because the email is verified above: Google vouches the person owns it.
+        # safe to link since the email is verified above
         db.add(
             OAuthAccount(
                 user_id=existing.id,

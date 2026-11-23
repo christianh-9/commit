@@ -8,7 +8,7 @@ import Landing from '@/pages/landing'
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   if (token.get()) return children
-  // Signed-out visitors to the home page see what Commit is; other pages go to login.
+  // logged-out visitors on / get the landing page
   return pathname === '/' ? <Landing /> : <Navigate to="/login" replace />
 }
 

@@ -3,7 +3,6 @@ import { useState, type ComponentProps, type ReactNode } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-/** Label + control + error message, wired for screen readers via `${id}-error`. */
 export function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: ReactNode }) {
   return (
     <div className="grid gap-1.5">
@@ -22,7 +21,7 @@ export function Field({ id, label, error, hint, children }: { id: string; label:
   )
 }
 
-/** Segmented 1-7 picker built on native radios, so arrow keys work for free. */
+// native radios so arrow keys work
 export function DaysPicker({ value, onChange, id }: { value: number; onChange: (n: number) => void; id: string }) {
   return (
     <div id={id} role="radiogroup" aria-label="Target days per week" className="grid grid-cols-7 gap-1.5">
@@ -38,7 +37,6 @@ export function DaysPicker({ value, onChange, id }: { value: number; onChange: (
   )
 }
 
-/** Native autocomplete for <Input list="timezones">. */
 export function TimezoneOptions() {
   return (
     <datalist id="timezones">
@@ -49,7 +47,6 @@ export function TimezoneOptions() {
   )
 }
 
-/** Password input with a button to show or hide what's typed. */
 export function PasswordInput({ className, ...props }: Omit<ComponentProps<'input'>, 'type'>) {
   const [visible, setVisible] = useState(false)
   return (

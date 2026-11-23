@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { buildHeatmap, isoDate } from '@/lib/logic'
 
-// GitHub's contribution ramp; level 0 is tinted to sit on the card.
+// github's green ramp
 const GREENS = ['#e4e9e5', '#9be9a8', '#40c463', '#30a14e', '#216e39']
 
 export default function Home() {
@@ -72,7 +72,6 @@ function StreakCard() {
           </span>
           {days_this_week >= target && <span className="font-semibold text-primary">Goal met</span>}
         </p>
-        {/* One segment per target day: the goal is a count, so the bar shows countable steps. */}
         <div
           role="progressbar"
           aria-label="Days trained this week"
@@ -94,7 +93,7 @@ function HeatmapCard() {
   const { data } = useHeatmap()
   const ref = useRef<HTMLDivElement>(null)
 
-  // Start scrolled to the most recent weeks on narrow screens.
+  // scroll to the latest weeks
   useEffect(() => {
     const el = ref.current?.querySelector('.react-activity-calendar__scroll-container')
     if (el) el.scrollLeft = el.scrollWidth

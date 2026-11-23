@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { ApiError } from '@/api/client'
 import { fieldErrors } from './logic'
 
-/** Put FastAPI 422 messages under matching fields; everything else becomes a toast. */
+// 422s go under the matching field, anything else is a toast
 export function showApiError<T extends FieldValues>(err: unknown, setError: UseFormSetError<T>, fields: Path<T>[]) {
   const errors = err instanceof ApiError && err.status === 422 ? fieldErrors(err.detail) : null
   const unmatched: string[] = []

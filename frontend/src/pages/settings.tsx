@@ -37,7 +37,7 @@ export default function Settings() {
     mutationFn: (body: Values) => call(api.PATCH('/users/me', { body })),
     onSuccess: (user) => {
       queryClient.setQueryData(keys.me, user)
-      // Target and timezone both change how the streak is counted.
+      // target and timezone both affect the streak
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       toast.success('Settings saved')
     },

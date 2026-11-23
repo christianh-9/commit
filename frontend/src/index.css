@@ -49,7 +49,6 @@
 }
 
 :root {
-    /* Commit palette: chalk paper, gym ink, GitHub greens */
     --background: #f3f5f2;
     --foreground: #111a14;
     --card: #ffffff;
@@ -66,7 +65,7 @@
     --accent-foreground: #16502a;
     --destructive: #c4321c;
     --border: #dce2dd;
-    --input: #7f8c84; /* 3.2:1 on page, 3.5:1 on card (WCAG 1.4.11) */
+    --input: #7f8c84; /* needs 3:1 contrast */
     --ring: #30a14e;
     --chart-1: #9be9a8;
     --chart-2: #40c463;
@@ -131,13 +130,13 @@
 }
 @layer base {
   h1, h2, h3 { font-family: var(--font-heading); font-stretch: 75%; letter-spacing: -0.01em; }
-  /* iOS zooms inputs under 16px */
+  /* iOS zooms in on inputs under 16px */
   input, select, textarea { font-size: 16px !important; }
 }
 
 .scoreboard { font-family: var(--font-heading); font-stretch: 62%; font-weight: 800; line-height: 0.82; font-variant-numeric: tabular-nums; }
 
-/* Keep focused fields clear of the fixed bottom tab bar (WCAG 2.4.11). */
+/* keep focused inputs above the tab bar */
 html { scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
 
 @media (prefers-reduced-motion: reduce) {
