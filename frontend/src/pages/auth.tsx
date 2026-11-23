@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link, Navigate, useNavigate } from 'react-router'
@@ -43,9 +43,18 @@ function login(values: LoginValues) {
 function AuthShell({ title, children, footer }: { title: string; children: React.ReactNode; footer: React.ReactNode }) {
   if (token.get()) return <Navigate to="/" replace />
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-4 py-10">
+    <main className="relative mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-4 py-16">
+      <Link
+        to="/"
+        className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-2 flex h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Home
+      </Link>
       <div className="grid gap-3">
-        <BrandMark />
+        <Link to="/" aria-label="Commit home" className="justify-self-start rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+          <BrandMark />
+        </Link>
         <h1 className="text-[2.5rem] leading-[0.9] font-extrabold">{title}</h1>
       </div>
       <div className="grid gap-5">
