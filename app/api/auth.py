@@ -67,3 +67,10 @@ async def update_me(data: UserUpdate, user: CurrentUser, db: DbSession) -> User:
     await db.commit()
     await db.refresh(user)
     return user
+
+
+@router.delete("/users/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(user: CurrentUser, db: DbSession) -> None:
+    # workouts, sets and google links go with it (ON DELETE CASCADE)
+    await db.delete(user)
+    await db.commit()
