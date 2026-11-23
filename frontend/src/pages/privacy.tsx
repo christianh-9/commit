@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
 const CONTACT_EMAIL = 'hongchristian99@gmail.com'
-const UPDATED = 'October 15, 2026'
+const UPDATED = 'November 23, 2026'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -58,9 +58,12 @@ export default function Privacy() {
 
       <Section title="Deleting your data">
         <p>
-          You can delete individual workouts in the app at any time. To delete your whole account and everything in
-          it, email <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-primary underline-offset-4 hover:underline">{CONTACT_EMAIL}</a>{' '}
-          from the address you signed up with. It will be removed within 30 days.
+          You can delete individual workouts in the app at any time. To delete your whole account and everything in it,
+          go to Settings and choose Delete account. It's removed immediately. If you can't sign in anymore, email{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-primary underline-offset-4 hover:underline">
+            {CONTACT_EMAIL}
+          </a>{' '}
+          from the address you signed up with and it will be deleted within 30 days.
         </p>
       </Section>
 
