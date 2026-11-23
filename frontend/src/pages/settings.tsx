@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LogOut } from 'lucide-react'
-import { useEffect } from 'react'
+import { LogOut, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -10,6 +10,16 @@ import { api, call, token } from '@/api/client'
 import { keys, useMe } from '@/api/queries'
 import { DaysPicker, Field, TimezoneOptions } from '@/components/field'
 import { PageHeader } from '@/components/layout'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -88,7 +98,68 @@ export default function Settings() {
         <Button variant="outline" size="lg" className="text-destructive" onClick={logout}>
           <LogOut aria-hidden /> Log out
         </Button>
+        <DeleteAccount />
       </div>
     </main>
+  )
+}
+
+function DeleteAccount() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [confirmText, setConfirmText] = useState('')
+  const mutation = useMutation({
+    mutationFn: () => call(api.DELETE('/users/me')),
+    onSuccess: () => {
+      token.clear()
+      queryClient.clear()
+      navigate('/', { replace: true })
+      toast.success('Your account was deleted')
+    },
+    onError: (err) => toast.error(err.message),
+  })
+
+  return (
+    <section aria-labelledby="delete-heading" className="grid gap-3 border-t pt-6">
+      <h2 id="delete-heading" className="text-xl font-bold">
+        Delete account
+      </h2>
+      <p className="text-sm text-muted-foreground">
+        Permanently deletes your account and every workout you've logged. This can't be undone.
+      </p>
+      <AlertDialog onOpenChange={(open) => !open && setConfirmText('')}>
+        <AlertDialogTrigger asChild>
+          <Button variant="destructive" size="lg" className="justify-self-start">
+            <Trash2 aria-hidden /> Delete account
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your account, workouts and streak will be deleted for good. Type <b>delete</b> to confirm.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            aria-label="Type delete to confirm"
+            autoComplete="off"
+            autoCapitalize="none"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep my account</AlertDialogCancel>
+            {/* a plain button, so the dialog stays open while the request runs */}
+            <Button
+              variant="destructive"
+              disabled={confirmText.trim().toLowerCase() !== 'delete' || mutation.isPending}
+              onClick={() => mutation.mutate()}
+            >
+              {mutation.isPending ? 'Deleting…' : 'Delete account'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
   )
 }
