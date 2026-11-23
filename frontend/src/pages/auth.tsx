@@ -1,11 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api, call, token } from '@/api/client'
+import { backend, useBackendAwake } from '@/api/wake'
 import { keys } from '@/api/queries'
 import { DaysPicker, Field, PasswordInput, TimezoneOptions } from '@/components/field'
 import { Button } from '@/components/ui/button'
@@ -32,7 +34,7 @@ function login(values: LoginValues) {
     api.POST('/auth/login', {
       body: { ...values, scope: '' },
       bodySerializer: (b) => new URLSearchParams(b),
-      // openapi-fetch defaults to JSON; OAuth2PasswordRequestForm needs a form body.
+      // openapi-fetch sends JSON by default, login expects a form body
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     }),
   )
@@ -63,33 +65,67 @@ function AuthShell({ title, children, footer }: { title: string; children: React
   )
 }
 
-/** A plain link: the browser has to leave the app for Google's sign-in page. */
+const GOOGLE_LOGIN = '/api/auth/google/login'
+
+// plain <a> because the browser has to leave the app for google.
+// waits for the backend first so we don't end up on render's loading page
 export function GoogleButton() {
+  const awake = useBackendAwake()
+  const [waiting, setWaiting] = useState(false)
+
+  // reset if the user comes back from google with the back button
+  useEffect(() => {
+    const reset = (e: PageTransitionEvent) => e.persisted && setWaiting(false)
+    addEventListener('pageshow', reset)
+    return () => removeEventListener('pageshow', reset)
+  }, [])
+
+  async function onClick(e: MouseEvent<HTMLAnchorElement>) {
+    if (awake || e.metaKey || e.ctrlKey || e.shiftKey) return
+    e.preventDefault()
+    if (waiting) return
+    setWaiting(true)
+    if (await backend.wake()) {
+      location.assign(GOOGLE_LOGIN)
+    } else {
+      setWaiting(false)
+      toast.error("Couldn't reach the server. Check your connection and try again.")
+    }
+  }
+
   return (
     <Button asChild variant="outline" size="lg" className="bg-card font-semibold">
-      <a href="/api/auth/google/login">
-        <svg viewBox="0 0 48 48" className="size-5" aria-hidden>
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-        </svg>
-        Continue with Google
+      <a href={GOOGLE_LOGIN} onClick={onClick} aria-busy={waiting}>
+        {waiting ? (
+          <>
+            <Loader2 className="size-5 animate-spin" aria-hidden />
+            Starting the server…
+          </>
+        ) : (
+          <>
+            <svg viewBox="0 0 48 48" className="size-5" aria-hidden>
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+            </svg>
+            Continue with Google
+          </>
+        )}
       </a>
     </Button>
   )
 }
 
-/** Remove the #fragment without adding a history entry, keeping React Router's state. */
 function clearHash() {
   history.replaceState(history.state, '', location.pathname + location.search)
 }
 
-/** Landing page for the backend's Google redirect: /auth/callback#token=<jwt>[&new=1]. */
+// backend redirects here with #token=...&new=1
 export function AuthCallback() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  // StrictMode runs effects twice in dev; the second run would see the cleared hash and bounce to /login.
+  // strict mode runs effects twice in dev
   const started = useRef(false)
 
   useEffect(() => {
@@ -111,7 +147,7 @@ export function AuthCallback() {
     }
     call(api.PATCH('/users/me', { body: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone } }))
       .then((user) => queryClient.setQueryData(keys.me, user))
-      // The timezone can still be set in Settings, so a failure here shouldn't block sign-in.
+      // not worth blocking sign-in over, they can set it in settings
       .catch(() => queryClient.invalidateQueries({ queryKey: keys.me }))
       .finally(() => {
         navigate('/settings', { replace: true })
@@ -127,7 +163,6 @@ export function AuthCallback() {
   )
 }
 
-/** Five heatmap squares stepping up the green ramp. */
 export function BrandMark() {
   return (
     <div className="flex items-center gap-2" aria-label="Commit">
@@ -154,7 +189,7 @@ export function Login() {
     onError: (err) => showApiError(err, form.setError, ['username', 'password']),
   })
 
-  // The backend's Google callback lands here as /login#error=<message> when sign-in fails.
+  // failed google sign-ins come back as /login#error=...
   useEffect(() => {
     const error = new URLSearchParams(location.hash.slice(1)).get('error')
     if (error) {

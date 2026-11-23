@@ -4,8 +4,10 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
 import { toast } from 'sonner'
 import { ApiError } from '@/api/client'
+import { backend } from '@/api/wake'
 import { Layout, RequireAuth } from '@/components/layout'
 import { Toaster } from '@/components/ui/sonner'
+import { WakingNotice } from '@/components/waking-notice'
 import History from '@/pages/history'
 import Home from '@/pages/home'
 import Log from '@/pages/log'
@@ -14,9 +16,12 @@ import { AuthCallback, Login, Register } from '@/pages/auth'
 import Settings from '@/pages/settings'
 import './index.css'
 
+// render's free tier sleeps when idle, so start waking it now
+backend.wake()
+
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    // 401s already redirect to /login.
+    // 401s already redirect to /login
     onError: (err) => !(err instanceof ApiError && err.status === 401) && toast.error(err.message),
   }),
   defaultOptions: { queries: { retry: (n, err) => !(err instanceof ApiError) && n < 2 } },
@@ -48,6 +53,7 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <Toaster />
+      <WakingNotice />
     </QueryClientProvider>
   </StrictMode>,
 )
