@@ -2,7 +2,7 @@
 
 A workout tracker built for your phone. You log what you lift, pick how many days a week you want to train, and the app keeps a weekly streak and a GitHub-style heatmap of the past year.
 
-**[Live site](https://commit-gyu0.onrender.com/)**
+**[Live site](https://commit.christianhong.dev/)**
 
 ## Features
 
@@ -144,7 +144,9 @@ DATABASE_URL='postgresql+asyncpg://...?ssl=require' uv run alembic upgrade head
 | `/api/*` | `https://<api-service>.onrender.com/*` |
 | `/*` | `/index.html` |
 
-**Google.** Production uses its own OAuth client, with `https://commit-gyu0.onrender.com/api/auth/google/callback` as the redirect URI.
+**Domain.** The static site is served at `commit.christianhong.dev`, added under the static site's custom domains in Render. `FRONTEND_URL` and `GOOGLE_REDIRECT_URL` on the API use that domain.
+
+**Google.** Production uses its own OAuth client, with `https://commit.christianhong.dev/api/auth/google/callback` as the redirect URI.
 
 The API runs on Render's free tier, which sleeps after 15 minutes without requests. An UptimeRobot monitor on `/api/docs` every 5 minutes keeps it awake. That page doesn't touch the database, so Neon can still scale to zero when nobody is using the app.
 
