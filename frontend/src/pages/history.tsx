@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { api, call } from '@/api/client'
@@ -86,7 +86,14 @@ function WorkoutCard({ workout }: { workout: Workout }) {
           </div>
         ))}
         {workout.notes && <p className="text-sm whitespace-pre-line text-muted-foreground">{workout.notes}</p>}
-        <DeleteWorkout workout={workout} />
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link to={`/workouts/${workout.id}/edit`}>
+              <Pencil aria-hidden /> Edit
+            </Link>
+          </Button>
+          <DeleteWorkout workout={workout} />
+        </div>
       </CollapsibleContent>
     </Collapsible>
   )
@@ -106,7 +113,7 @@ function DeleteWorkout({ workout }: { workout: Workout }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" className="justify-self-start" disabled={mutation.isPending}>
+        <Button variant="destructive" disabled={mutation.isPending}>
           <Trash2 aria-hidden /> Delete workout
         </Button>
       </AlertDialogTrigger>
