@@ -87,6 +87,23 @@ async def create_workout(
     return await get_workout_for_user(db, workout.id, user.id)
 
 
+@router.put("/workouts/{workout_id}", response_model=WorkoutRead)
+async def update_workout(
+    workout_id: uuid.UUID, data: WorkoutCreate, user: CurrentUser, db: DbSession
+) -> Workout:
+    workout = await get_workout_for_user(db, workout_id, user.id)
+    await validate_workout(data, user, db)
+
+    workout.performed_on = data.performed_on
+    workout.duration_min = data.duration_min
+    workout.notes = data.notes
+
+    workout.sets = build_sets(data)
+
+    await db.commit()
+    return await get_workout_for_user(db, workout.id, user.id)
+
+
 @router.get("/workouts", response_model=list[WorkoutRead])
 async def list_workouts(
     user: CurrentUser,
