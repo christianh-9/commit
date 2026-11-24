@@ -2,14 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api, call, token } from '@/api/client'
 import { backend, useBackendAwake } from '@/api/wake'
 import { keys } from '@/api/queries'
-import { DaysPicker, Field, PasswordInput, TimezoneOptions } from '@/components/field'
+import { DaysPicker, Field, PasswordInput, TimezoneSelect } from '@/components/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { showApiError } from '@/lib/forms'
@@ -240,6 +240,7 @@ export function Register() {
     resolver: zodResolver(registerSchema),
     defaultValues: { target_days_per_week: 3, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
   })
+  const timezone = useWatch({ control: form.control, name: 'timezone' })
   const { errors } = form.formState
   const mutation = useMutation({
     mutationFn: async (values: RegisterValues) => {
@@ -283,8 +284,13 @@ export function Register() {
           />
         </Field>
         <Field id="timezone" label="Timezone" error={errors.timezone?.message} hint="Used to decide which day a workout counts for">
-          <Input id="timezone" list="timezones" autoComplete="off" aria-invalid={!!errors.timezone} aria-describedby="timezone-error" {...form.register('timezone')} />
-          <TimezoneOptions />
+          <TimezoneSelect
+            id="timezone"
+            current={timezone}
+            aria-invalid={!!errors.timezone}
+            aria-describedby="timezone-error"
+            {...form.register('timezone')}
+          />
         </Field>
         <Button type="submit" size="lg" disabled={mutation.isPending}>
           {mutation.isPending ? 'Creating account…' : 'Create account'}
