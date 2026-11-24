@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildHeatmap, fieldErrors, formatSet, groupSets, isoDate, toFormEntries } from './logic'
+import { buildHeatmap, fieldErrors, formatSet, groupSets, isoDate, toFormEntries, todayIn } from './logic'
 
 describe('buildHeatmap', () => {
   test('fills every day of the past year ending today, oldest first', () => {
@@ -112,5 +112,19 @@ describe('toFormEntries', () => {
       { id: '3', set_number: 3, reps: 5, weight: 105, exercise: squat },
     ])
     expect(entries.map((e) => e.name)).toEqual(['Squat', 'Bench', 'Squat'])
+  })
+})
+
+describe('todayIn', () => {
+  // 06:30 UTC on Nov 24 is still the evening of Nov 23 in Los Angeles
+  const instant = new Date('2026-11-24T06:30:00Z')
+
+  test('gives the calendar date in that timezone', () => {
+    expect(todayIn('America/Los_Angeles', instant)).toBe('2026-11-23')
+    expect(todayIn('Asia/Tokyo', instant)).toBe('2026-11-24')
+  })
+
+  test('falls back to the device date for an unknown timezone', () => {
+    expect(todayIn('Mars/Olympus', instant)).toBe(isoDate(instant))
   })
 })

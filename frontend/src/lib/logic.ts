@@ -58,3 +58,12 @@ export function toFormEntries(sets: SetRead[]) {
   }
   return entries
 }
+
+// yyyy-MM-dd in the given timezone (en-CA formats dates that way)
+export function todayIn(timeZone: string, now = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone }).format(now)
+  } catch {
+    return isoDate(now)
+  }
+}

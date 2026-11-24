@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { todayIn } from '@/lib/logic'
 import { api, call } from './client'
 
 export const keys = {
@@ -10,6 +11,12 @@ export const keys = {
 } as const
 
 export const useMe = () => useQuery({ queryKey: keys.me, queryFn: () => call(api.GET('/users/me')) })
+
+// today in the account's timezone, which is what the server checks dates against
+export function useToday() {
+  const { data } = useMe()
+  return todayIn(data?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone)
+}
 export const useStreak = () => useQuery({ queryKey: keys.streak, queryFn: () => call(api.GET('/stats/streak')) })
 export const useHeatmap = () => useQuery({ queryKey: keys.heatmap, queryFn: () => call(api.GET('/stats/heatmap')) })
 export const useExercises = () =>
