@@ -1,13 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useFieldArray, useForm, type Control, type FieldErrors, type UseFormGetValues, type UseFormRegister } from 'react-hook-form'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api, call } from '@/api/client'
-import { keys, useExercises, useWorkout } from '@/api/queries'
+import { keys, useExercises, useMe, useToday, useWorkout } from '@/api/queries'
 import type { components } from '@/api/schema'
 import { Field } from '@/components/field'
 import { PageHeader } from '@/components/layout'
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { showApiError } from '@/lib/forms'
-import { isoDate, toFormEntries, type Exercise } from '@/lib/logic'
+import { toFormEntries, type Exercise } from '@/lib/logic'
 
 // inputs are strings, convert them to numbers
 const optionalNumber = (schema: z.ZodNumber) =>
@@ -27,29 +27,31 @@ const optionalNumber = (schema: z.ZodNumber) =>
     .transform((v) => (v === '' ? undefined : Number(v)))
     .pipe(schema.optional())
 
-const schema = z.object({
-  performed_on: z.iso.date('Pick a date').refine((d) => d <= isoDate(new Date()), 'Date cannot be in the future'),
-  duration_min: optionalNumber(z.number('Enter minutes').int('Whole minutes only').min(1).max(600)),
-  notes: z.string().max(2000).transform((v) => v.trim() || undefined),
-  entries: z
-    .array(
-      z.object({
-        exercise_id: z.string(),
-        name: z.string(),
-        sets: z
-          .array(
-            z.object({
-              reps: z.string().trim().min(1, 'Enter reps').transform(Number).pipe(z.number('Enter reps').int().min(1, 'At least 1').max(1000)),
-              weight: optionalNumber(z.number('Enter a number').min(0).max(9999.99)),
-            }),
-          )
-          .min(1),
-      }),
-    )
-    .min(1, 'Add at least one exercise'),
-})
-type FormIn = z.input<typeof schema>
-type FormOut = z.output<typeof schema>
+// built per render because "today" depends on the account's timezone
+const makeSchema = (today: string) =>
+  z.object({
+    performed_on: z.iso.date('Pick a date').refine((d) => d <= today, 'Date cannot be in the future'),
+    duration_min: optionalNumber(z.number('Enter minutes').int('Whole minutes only').min(1).max(600)),
+    notes: z.string().max(2000).transform((v) => v.trim() || undefined),
+    entries: z
+      .array(
+        z.object({
+          exercise_id: z.string(),
+          name: z.string(),
+          sets: z
+            .array(
+              z.object({
+                reps: z.string().trim().min(1, 'Enter reps').transform(Number).pipe(z.number('Enter reps').int().min(1, 'At least 1').max(1000)),
+                weight: optionalNumber(z.number('Enter a number').min(0).max(9999.99)),
+              }),
+            )
+            .min(1),
+        }),
+      )
+      .min(1, 'Add at least one exercise'),
+  })
+type FormIn = z.input<ReturnType<typeof makeSchema>>
+type FormOut = z.output<ReturnType<typeof makeSchema>>
 
 const emptySet = { reps: '', weight: '' }
 
@@ -59,7 +61,22 @@ type Workout = components['schemas']['WorkoutRead']
 export default function Log() {
   const { id } = useParams()
   // key: a fresh form for each workout, so values never carry over between edits
-  return id ? <EditWorkout key={id} id={id} /> : <WorkoutForm />
+  return id ? <EditWorkout key={id} id={id} /> : <NewWorkout />
+}
+
+// waits for the account so the default date uses its timezone (usually already cached)
+function NewWorkout() {
+  const { isPending } = useMe()
+  if (!isPending) return <WorkoutForm />
+  return (
+    <main>
+      <PageHeader title="Log workout" />
+      <div className="grid gap-5 px-4">
+        <Skeleton className="h-[70px]" />
+        <Skeleton className="h-14 rounded-lg" />
+      </div>
+    </main>
+  )
 }
 
 function EditWorkout({ id }: { id: string }) {
@@ -91,7 +108,8 @@ function WorkoutForm({ workout }: { workout?: Workout }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [picking, setPicking] = useState(false)
-  const today = isoDate(new Date())
+  const today = useToday()
+  const schema = useMemo(() => makeSchema(today), [today])
   const form = useForm<FormIn, unknown, FormOut>({
     resolver: zodResolver(schema),
     // onBlur so a newly added set isn't flagged as empty right away
