@@ -1,7 +1,8 @@
 import { Eye, EyeOff } from 'lucide-react'
-import { useState, type ComponentProps, type ReactNode } from 'react'
+import { useMemo, useState, type ComponentProps, type ReactNode } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { groupTimezones } from '@/lib/timezones'
 
 export function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: ReactNode }) {
   return (
@@ -37,13 +38,23 @@ export function DaysPicker({ value, onChange, id }: { value: number; onChange: (
   )
 }
 
-export function TimezoneOptions() {
+export function TimezoneSelect({ current, ...props }: ComponentProps<'select'> & { current: string }) {
+  const groups = useMemo(() => groupTimezones(Intl.supportedValuesOf('timeZone'), current), [current])
   return (
-    <datalist id="timezones">
-      {Intl.supportedValuesOf('timeZone').map((tz) => (
-        <option key={tz} value={tz} />
+    <select
+      className="h-11 w-full rounded-lg border border-input bg-card px-3 text-base dark:bg-input/30 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive"
+      {...props}
+    >
+      {groups.map((g) => (
+        <optgroup key={g.region} label={g.region}>
+          {g.zones.map((z) => (
+            <option key={z.value} value={z.value}>
+              {z.label}
+            </option>
+          ))}
+        </optgroup>
       ))}
-    </datalist>
+    </select>
   )
 }
 

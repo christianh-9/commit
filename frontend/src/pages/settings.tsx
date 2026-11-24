@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { LogOut, Monitor, Moon, Sun, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api, call, token } from '@/api/client'
 import { keys, useMe } from '@/api/queries'
-import { DaysPicker, Field, TimezoneOptions } from '@/components/field'
+import { DaysPicker, Field, TimezoneSelect } from '@/components/field'
 import { PageHeader } from '@/components/layout'
 import {
   AlertDialog,
@@ -38,6 +38,7 @@ export default function Settings() {
   const queryClient = useQueryClient()
   const me = useMe()
   const form = useForm<Values>({ resolver: zodResolver(schema) })
+  const timezone = useWatch({ control: form.control, name: 'timezone' })
   const { errors, isDirty } = form.formState
 
   useEffect(() => {
@@ -81,8 +82,13 @@ export default function Settings() {
               />
             </Field>
             <Field id="timezone" label="Timezone" error={errors.timezone?.message} hint="Used to decide which day a workout counts for">
-              <Input id="timezone" list="timezones" autoComplete="off" aria-invalid={!!errors.timezone} aria-describedby="timezone-error" {...form.register('timezone')} />
-              <TimezoneOptions />
+              <TimezoneSelect
+                id="timezone"
+                current={timezone}
+                aria-invalid={!!errors.timezone}
+                aria-describedby="timezone-error"
+                {...form.register('timezone')}
+              />
             </Field>
             <Button type="submit" size="lg" disabled={!isDirty || mutation.isPending}>
               {mutation.isPending ? 'Saving…' : 'Save changes'}
