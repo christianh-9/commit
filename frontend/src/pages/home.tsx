@@ -7,9 +7,13 @@ import { useHeatmap, useMe, useStreak } from '@/api/queries'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { buildHeatmap, isoDate } from '@/lib/logic'
+import { useTheme } from '@/lib/theme'
 
-// github's green ramp
-const GREENS = ['#e4e9e5', '#9be9a8', '#40c463', '#30a14e', '#216e39']
+// github's green ramps, same values as --heat-* in index.css
+const GREENS = {
+  light: ['#e4e9e5', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
+  dark: ['#1f2a23', '#0e4429', '#006d32', '#26a641', '#39d353'],
+}
 
 export default function Home() {
   const me = useMe()
@@ -91,6 +95,7 @@ function StreakCard() {
 
 function HeatmapCard() {
   const { data } = useHeatmap()
+  const { theme } = useTheme()
   const ref = useRef<HTMLDivElement>(null)
 
   // scroll to the latest weeks
@@ -113,8 +118,8 @@ function HeatmapCard() {
             blockMargin={3}
             blockRadius={3}
             fontSize={12}
-            colorScheme="light"
-            theme={{ light: GREENS }}
+            colorScheme={theme}
+            theme={GREENS}
             labels={{ totalCount: '{{count}} workouts in the past year' }}
             tooltips={{
               activity: {

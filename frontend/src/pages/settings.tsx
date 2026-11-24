@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LogOut, Trash2 } from 'lucide-react'
+import { LogOut, Monitor, Moon, Sun, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { showApiError } from '@/lib/forms'
+import { useTheme, type Preference } from '@/lib/theme'
 
 const schema = z.object({
   display_name: z.string().trim().min(1, 'Enter a name').max(50),
@@ -95,6 +96,7 @@ export default function Settings() {
             <Skeleton className="h-[70px]" />
           </div>
         )}
+        <Appearance />
         <Button variant="outline" size="lg" className="text-destructive" onClick={logout}>
           <LogOut aria-hidden /> Log out
         </Button>
@@ -160,6 +162,42 @@ function DeleteAccount() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </section>
+  )
+}
+
+const themes: { value: Preference; label: string; icon: typeof Sun }[] = [
+  { value: 'system', label: 'System', icon: Monitor },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+]
+
+function Appearance() {
+  const { preference, setPreference } = useTheme()
+  return (
+    <section aria-labelledby="appearance-heading" className="grid gap-3">
+      <h2 id="appearance-heading" className="text-sm font-semibold">
+        Appearance
+      </h2>
+      <div role="radiogroup" aria-labelledby="appearance-heading" className="grid grid-cols-3 gap-1.5">
+        {themes.map(({ value, label, icon: Icon }) => (
+          <label key={value}>
+            <input
+              type="radio"
+              name="theme"
+              value={value}
+              checked={preference === value}
+              onChange={() => setPreference(value)}
+              className="peer sr-only"
+            />
+            <span className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-input bg-card text-sm font-semibold transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50">
+              <Icon className="size-4" aria-hidden />
+              {label}
+            </span>
+          </label>
+        ))}
+      </div>
+      <p className="text-sm text-muted-foreground">System matches your phone or computer. Saved on this device.</p>
     </section>
   )
 }

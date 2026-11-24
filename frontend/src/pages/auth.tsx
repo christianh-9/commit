@@ -176,8 +176,8 @@ export function BrandMark() {
   return (
     <div className="flex items-center gap-2" aria-label="Commit">
       <div className="flex gap-1" aria-hidden>
-        {['#dce2dd', '#9be9a8', '#40c463', '#30a14e', '#216e39'].map((c) => (
-          <span key={c} className="size-3.5 rounded-[3px]" style={{ background: c }} />
+        {[0, 1, 2, 3, 4].map((level) => (
+          <span key={level} className="size-3.5 rounded-[3px]" style={{ background: `var(--heat-${level})` }} />
         ))}
       </div>
       <span className="font-mono text-sm font-semibold tracking-tight">commit</span>
