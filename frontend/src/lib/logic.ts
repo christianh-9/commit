@@ -46,3 +46,15 @@ export function groupSets(sets: SetRead[]) {
 export function formatSet({ reps, weight }: { reps: number; weight?: number | null }): string {
   return weight == null ? `${reps} reps` : `${reps} × ${weight}`
 }
+
+// saved sets -> the log form's entries. groups only consecutive sets so the order survives a save
+export function toFormEntries(sets: SetRead[]) {
+  const entries: { exercise_id: string; name: string; sets: { reps: string; weight: string }[] }[] = []
+  for (const s of sets) {
+    const last = entries.at(-1)
+    const set = { reps: String(s.reps), weight: s.weight == null ? '' : String(s.weight) }
+    if (last?.exercise_id === s.exercise.id) last.sets.push(set)
+    else entries.push({ exercise_id: s.exercise.id, name: s.exercise.name, sets: [set] })
+  }
+  return entries
+}

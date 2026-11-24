@@ -16,3 +16,8 @@ export const useExercises = () =>
   useQuery({ queryKey: keys.exercises, queryFn: () => call(api.GET('/exercises')), staleTime: Infinity })
 export const useWorkouts = () =>
   useQuery({ queryKey: keys.workouts, queryFn: () => call(api.GET('/workouts', { params: { query: { limit: 200 } } })) })
+export const useWorkout = (id: string) =>
+  useQuery({
+    queryKey: [...keys.workouts, id],
+    queryFn: () => call(api.GET('/workouts/{workout_id}', { params: { path: { workout_id: id } } })),
+  })
