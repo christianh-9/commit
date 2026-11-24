@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildHeatmap, fieldErrors, formatSet, groupSets, isoDate } from './logic'
+import { buildHeatmap, fieldErrors, formatSet, groupSets, isoDate, toFormEntries } from './logic'
 
 describe('buildHeatmap', () => {
   test('fills every day of the past year ending today, oldest first', () => {
@@ -89,5 +89,28 @@ describe('formatSet', () => {
 
   test('shows reps alone when weight is missing', () => {
     expect(formatSet({ reps: 12, weight: null })).toBe('12 reps')
+  })
+})
+
+describe('toFormEntries', () => {
+  const squat = { id: 'a', name: 'Squat', muscle_group: 'legs' }
+  const bench = { id: 'b', name: 'Bench', muscle_group: 'chest' }
+
+  test('groups consecutive sets of the same exercise, as strings for the inputs', () => {
+    expect(
+      toFormEntries([
+        { id: '1', set_number: 1, reps: 5, weight: 100, exercise: squat },
+        { id: '2', set_number: 2, reps: 5, weight: null, exercise: squat },
+      ]),
+    ).toEqual([{ exercise_id: 'a', name: 'Squat', sets: [{ reps: '5', weight: '100' }, { reps: '5', weight: '' }] }])
+  })
+
+  test('keeps the original order when an exercise comes back later', () => {
+    const entries = toFormEntries([
+      { id: '1', set_number: 1, reps: 5, weight: 100, exercise: squat },
+      { id: '2', set_number: 2, reps: 8, weight: 60, exercise: bench },
+      { id: '3', set_number: 3, reps: 5, weight: 105, exercise: squat },
+    ])
+    expect(entries.map((e) => e.name)).toEqual(['Squat', 'Bench', 'Squat'])
   })
 })

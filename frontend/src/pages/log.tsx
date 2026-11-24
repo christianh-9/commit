@@ -3,19 +3,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useFieldArray, useForm, type Control, type FieldErrors, type UseFormGetValues, type UseFormRegister } from 'react-hook-form'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { api, call } from '@/api/client'
-import { keys, useExercises } from '@/api/queries'
+import { keys, useExercises, useWorkout } from '@/api/queries'
+import type { components } from '@/api/schema'
 import { Field } from '@/components/field'
 import { PageHeader } from '@/components/layout'
 import { Button } from '@/components/ui/button'
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { showApiError } from '@/lib/forms'
-import { isoDate, type Exercise } from '@/lib/logic'
+import { isoDate, toFormEntries, type Exercise } from '@/lib/logic'
 
 // inputs are strings, convert them to numbers
 const optionalNumber = (schema: z.ZodNumber) =>
@@ -51,7 +53,41 @@ type FormOut = z.output<typeof schema>
 
 const emptySet = { reps: '', weight: '' }
 
+type Workout = components['schemas']['WorkoutRead']
+
+// /log for a new workout, /workouts/:id/edit to change one
 export default function Log() {
+  const { id } = useParams()
+  // key: a fresh form for each workout, so values never carry over between edits
+  return id ? <EditWorkout key={id} id={id} /> : <WorkoutForm />
+}
+
+function EditWorkout({ id }: { id: string }) {
+  const { data, isPending, isError } = useWorkout(id)
+  if (data) return <WorkoutForm workout={data} />
+  return (
+    <main>
+      <PageHeader title="Edit workout" />
+      {isPending ? (
+        <div className="grid gap-5 px-4">
+          <Skeleton className="h-[70px]" />
+          <Skeleton className="h-48 rounded-2xl" />
+        </div>
+      ) : (
+        isError && (
+          <p className="px-4 text-muted-foreground">
+            This workout doesn't exist anymore.{' '}
+            <Link to="/history" className="font-semibold text-primary underline-offset-4 hover:underline">
+              Back to history
+            </Link>
+          </p>
+        )
+      )}
+    </main>
+  )
+}
+
+function WorkoutForm({ workout }: { workout?: Workout }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [picking, setPicking] = useState(false)
@@ -61,27 +97,34 @@ export default function Log() {
     // onBlur so a newly added set isn't flagged as empty right away
     mode: 'onBlur',
     reValidateMode: 'onBlur',
-    defaultValues: { performed_on: today, duration_min: '', notes: '', entries: [] },
+    defaultValues: workout
+      ? {
+          performed_on: workout.performed_on,
+          duration_min: workout.duration_min?.toString() ?? '',
+          notes: workout.notes ?? '',
+          entries: toFormEntries(workout.sets),
+        }
+      : { performed_on: today, duration_min: '', notes: '', entries: [] },
   })
   const entries = useFieldArray({ control: form.control, name: 'entries' })
   const { errors } = form.formState
 
   const mutation = useMutation({
-    mutationFn: ({ entries, ...rest }: FormOut) =>
-      call(
-        api.POST('/workouts', {
-          body: {
-            ...rest,
-            // server numbers the sets in this order
-            sets: entries.flatMap((e) => e.sets.map((s) => ({ exercise_id: e.exercise_id, reps: s.reps, weight: s.weight }))),
-          },
-        }),
-      ),
+    mutationFn: ({ entries, ...rest }: FormOut) => {
+      const body = {
+        ...rest,
+        // server numbers the sets in this order
+        sets: entries.flatMap((e) => e.sets.map((s) => ({ exercise_id: e.exercise_id, reps: s.reps, weight: s.weight }))),
+      }
+      return workout
+        ? call(api.PUT('/workouts/{workout_id}', { params: { path: { workout_id: workout.id } }, body }))
+        : call(api.POST('/workouts', { body }))
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       queryClient.invalidateQueries({ queryKey: keys.workouts })
-      toast.success('Workout saved')
-      navigate('/')
+      toast.success(workout ? 'Workout updated' : 'Workout saved')
+      navigate(workout ? '/history' : '/')
     },
     onError: (err) => showApiError(err, form.setError, ['performed_on', 'duration_min', 'notes']),
   })
@@ -94,7 +137,7 @@ export default function Log() {
 
   return (
     <main>
-      <PageHeader title="Log workout" />
+      <PageHeader title={workout ? 'Edit workout' : 'Log workout'} />
       <form noValidate onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="grid gap-5 px-4">
         <Field id="performed_on" label="Date" error={errors.performed_on?.message}>
           <Input id="performed_on" type="date" max={today} aria-invalid={!!errors.performed_on} aria-describedby="performed_on-error" {...form.register('performed_on')} />
@@ -134,7 +177,7 @@ export default function Log() {
         </Field>
 
         <Button type="submit" size="lg" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Saving…' : 'Save workout'}
+          {mutation.isPending ? 'Saving…' : workout ? 'Save changes' : 'Save workout'}
         </Button>
       </form>
       <ExercisePicker open={picking} onOpenChange={setPicking} onPick={addExercise} />
@@ -237,7 +280,6 @@ function ExerciseBlock({
 
 function ExercisePicker({ open, onOpenChange, onPick }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (e: Exercise) => void }) {
   const { data, isPending } = useExercises()
-  // Object.groupBy needs iOS 17.4+
   const groups: Record<string, Exercise[]> = {}
   for (const e of data ?? []) (groups[e.muscle_group] ??= []).push(e)
   return (

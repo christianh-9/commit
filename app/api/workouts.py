@@ -7,13 +7,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, DbSession
-from app.models import Exercise, Workout, WorkoutSet
+from app.models import Exercise, User, Workout, WorkoutSet
 from app.schemas.workout import ExerciseRead, WorkoutCreate, WorkoutRead
 
 router = APIRouter(tags=["workouts"])
 
 
-async def get_workout_for_suer(
+async def get_workout_for_user(
     db: DbSession, workout_id: uuid.UUID, user_id: uuid.UUID
 ) -> Workout:
     stmt = (
@@ -36,12 +36,7 @@ async def list_exercises(db: DbSession) -> list[Exercise]:
     return list(result.all())
 
 
-@router.post(
-    "/workouts", response_model=WorkoutRead, status_code=status.HTTP_201_CREATED
-)
-async def create_workout(
-    data: WorkoutCreate, user: CurrentUser, db: DbSession
-) -> Workout:
+async def validate_workout(data: WorkoutCreate, user: User, db: DbSession) -> None:
     today = datetime.now(ZoneInfo(user.timezone)).date()
     if data.performed_on > today:
         raise HTTPException(
@@ -59,25 +54,54 @@ async def create_workout(
             detail=f"Unknown exercise id(s) : {', '.join(str(m) for m in missing)}",
         )
 
+
+def build_sets(data: WorkoutCreate) -> list[WorkoutSet]:
+    return [
+        WorkoutSet(
+            exercise_id=s.exercise_id,
+            set_number=i,
+            reps=s.reps,
+            weight=s.weight,
+        )
+        for i, s in enumerate(data.sets, start=1)
+    ]
+
+
+@router.post(
+    "/workouts", response_model=WorkoutRead, status_code=status.HTTP_201_CREATED
+)
+async def create_workout(
+    data: WorkoutCreate, user: CurrentUser, db: DbSession
+) -> Workout:
+    await validate_workout(data, user, db)
     workout = Workout(
         user_id=user.id,
         performed_on=data.performed_on,
         duration_min=data.duration_min,
         notes=data.notes,
-        sets=[
-            WorkoutSet(
-                exercise_id=s.exercise_id,
-                set_number=i,
-                reps=s.reps,
-                weight=s.weight,
-            )
-            for i, s in enumerate(data.sets, start=1)
-        ],
+        sets=build_sets(data),
     )
 
     db.add(workout)
     await db.commit()
-    return await get_workout_for_suer(db, workout.id, user.id)
+    return await get_workout_for_user(db, workout.id, user.id)
+
+
+@router.put("/workouts/{workout_id}", response_model=WorkoutRead)
+async def update_workout(
+    workout_id: uuid.UUID, data: WorkoutCreate, user: CurrentUser, db: DbSession
+) -> Workout:
+    workout = await get_workout_for_user(db, workout_id, user.id)
+    await validate_workout(data, user, db)
+
+    workout.performed_on = data.performed_on
+    workout.duration_min = data.duration_min
+    workout.notes = data.notes
+
+    workout.sets = build_sets(data)
+
+    await db.commit()
+    return await get_workout_for_user(db, workout.id, user.id)
 
 
 @router.get("/workouts", response_model=list[WorkoutRead])
@@ -107,13 +131,13 @@ async def list_workouts(
 async def get_workout(
     workout_id: uuid.UUID, user: CurrentUser, db: DbSession
 ) -> Workout:
-    return await get_workout_for_suer(db, workout_id, user.id)
+    return await get_workout_for_user(db, workout_id, user.id)
 
 
 @router.delete("/workouts/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workout(
     workout_id: uuid.UUID, user: CurrentUser, db: DbSession
 ) -> None:
-    workout = await get_workout_for_suer(db, workout_id, user.id)
+    workout = await get_workout_for_user(db, workout_id, user.id)
     await db.delete(workout)
     await db.commit()

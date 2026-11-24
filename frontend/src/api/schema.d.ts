@@ -135,7 +135,8 @@ export interface paths {
         };
         /** Get Workout */
         get: operations["get_workout_workouts__workout_id__get"];
-        put?: never;
+        /** Update Workout */
+        put: operations["update_workout_workouts__workout_id__put"];
         post?: never;
         /** Delete Workout */
         delete: operations["delete_workout_workouts__workout_id__delete"];
@@ -684,6 +685,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_workout_workouts__workout_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workout_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkoutCreate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
