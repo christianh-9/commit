@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { todayIn } from '@/lib/logic'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { nextOffset, todayIn } from '@/lib/logic'
 import { api, call } from './client'
 
 export const keys = {
@@ -21,8 +21,17 @@ export const useStreak = () => useQuery({ queryKey: keys.streak, queryFn: () => 
 export const useHeatmap = () => useQuery({ queryKey: keys.heatmap, queryFn: () => call(api.GET('/stats/heatmap')) })
 export const useExercises = () =>
   useQuery({ queryKey: keys.exercises, queryFn: () => call(api.GET('/exercises')), staleTime: Infinity })
+const PAGE_SIZE = 30
+
+// newest first, 30 at a time
 export const useWorkouts = () =>
-  useQuery({ queryKey: keys.workouts, queryFn: () => call(api.GET('/workouts', { params: { query: { limit: 200 } } })) })
+  useInfiniteQuery({
+    queryKey: keys.workouts,
+    queryFn: ({ pageParam }) =>
+      call(api.GET('/workouts', { params: { query: { limit: PAGE_SIZE, offset: pageParam } } })),
+    initialPageParam: 0,
+    getNextPageParam: (_last, pages) => nextOffset(pages, PAGE_SIZE),
+  })
 export const useWorkout = (id: string) =>
   useQuery({
     queryKey: [...keys.workouts, id],

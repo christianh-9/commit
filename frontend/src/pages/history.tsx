@@ -28,13 +28,14 @@ const longDate = (d: string) =>
   new Date(`${d}T00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
 
 export default function History() {
-  const { data, isPending } = useWorkouts()
+  const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } = useWorkouts()
+  const workouts = data?.pages.flat()
   return (
     <main>
       <PageHeader title="History" />
       <div className="grid gap-3 px-4">
         {isPending && Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[88px] rounded-2xl" />)}
-        {data?.length === 0 && (
+        {workouts?.length === 0 && (
           <div className="grid justify-items-start gap-3 rounded-2xl border border-dashed p-6">
             <p className="text-lg font-semibold">No workouts yet</p>
             <p className="text-muted-foreground">Your logged workouts show up here, newest first.</p>
@@ -45,7 +46,12 @@ export default function History() {
             </Button>
           </div>
         )}
-        {data?.map((w) => <WorkoutCard key={w.id} workout={w} />)}
+        {workouts?.map((w) => <WorkoutCard key={w.id} workout={w} />)}
+        {hasNextPage && (
+          <Button variant="outline" size="lg" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+            {isFetchingNextPage ? 'Loading…' : 'Load more'}
+          </Button>
+        )}
       </div>
     </main>
   )
