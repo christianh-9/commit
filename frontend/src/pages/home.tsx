@@ -3,10 +3,10 @@ import { useEffect, useRef } from 'react'
 import { ActivityCalendar } from 'react-activity-calendar'
 import 'react-activity-calendar/tooltips.css'
 import { Link } from 'react-router'
-import { useHeatmap, useMe, useStreak } from '@/api/queries'
+import { useHeatmap, useMe, useStreak, useToday } from '@/api/queries'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { buildHeatmap, isoDate } from '@/lib/logic'
+import { buildHeatmap } from '@/lib/logic'
 import { useTheme } from '@/lib/theme'
 
 // github's green ramps, same values as --heat-* in index.css
@@ -22,7 +22,7 @@ export default function Home() {
     <main className="grid grid-cols-[minmax(0,1fr)] gap-4 px-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">
       <header className="grid gap-1">
         <p className="font-mono text-xs tracking-wide text-muted-foreground uppercase">
-          {today.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+          {today.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', timeZone: me.data?.timezone })}
         </p>
         <h1 className="text-[2rem] leading-none font-extrabold">
           {me.data ? `Hey, ${me.data.display_name}` : <Skeleton className="h-8 w-40" />}
@@ -95,6 +95,7 @@ function StreakCard() {
 
 function HeatmapCard() {
   const { data } = useHeatmap()
+  const today = useToday()
   const { theme } = useTheme()
   const ref = useRef<HTMLDivElement>(null)
 
@@ -112,7 +113,7 @@ function HeatmapCard() {
       {data ? (
         <div ref={ref}>
           <ActivityCalendar
-            data={buildHeatmap(data, isoDate(new Date()))}
+            data={buildHeatmap(data, today)}
             weekStart={1}
             blockSize={12}
             blockMargin={3}
