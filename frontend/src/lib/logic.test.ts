@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildHeatmap, fieldErrors, formatSet, groupSets, isoDate, toFormEntries, todayIn } from './logic'
+import { buildHeatmap, fieldErrors, formatSet, groupSets, isoDate, nextOffset, toFormEntries, todayIn } from './logic'
 
 describe('buildHeatmap', () => {
   test('fills every day of the past year ending today, oldest first', () => {
@@ -126,5 +126,19 @@ describe('todayIn', () => {
 
   test('falls back to the device date for an unknown timezone', () => {
     expect(todayIn('Mars/Olympus', instant)).toBe(isoDate(instant))
+  })
+})
+
+describe('nextOffset', () => {
+  const page = (n: number) => Array.from({ length: n }, (_, i) => i)
+
+  test('asks for the next page after a full one', () => {
+    expect(nextOffset([page(30)], 30)).toBe(30)
+    expect(nextOffset([page(30), page(30)], 30)).toBe(60)
+  })
+
+  test('stops after a short or empty page', () => {
+    expect(nextOffset([page(30), page(12)], 30)).toBeUndefined()
+    expect(nextOffset([page(0)], 30)).toBeUndefined()
   })
 })

@@ -67,3 +67,8 @@ export function todayIn(timeZone: string, now = new Date()): string {
     return isoDate(now)
   }
 }
+
+// a full last page means there may be more, a short one means we've reached the end
+export function nextOffset(pages: unknown[][], pageSize: number): number | undefined {
+  return pages.at(-1)?.length === pageSize ? pages.length * pageSize : undefined
+}
