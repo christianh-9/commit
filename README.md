@@ -10,8 +10,8 @@ A workout tracker built for your phone. You log what you lift, pick how many day
 - Logging a workout: pick a date, choose exercises from a searchable list grouped by muscle group, and add sets with reps and an optional weight.
 - A weekly streak. A week (Monday to Sunday, in your own timezone) counts when you train on at least your target number of days, and the streak is the number of weeks in a row you hit it.
 - A heatmap of the past 365 days, shaded by how many workouts you logged each day.
-- Workout history with expandable cards, where sets are grouped by exercise, and delete with a confirmation step.
-- Settings for your name, weekly target and timezone.
+- Workout history, 30 at a time, with expandable cards where sets are grouped by exercise. You can edit a workout or delete it.
+- Settings for your name, weekly target, timezone and theme (light, dark or system), and an option to delete your account.
 
 ## Stack
 
@@ -110,10 +110,10 @@ npm run build                 # type-checks and builds to dist/
 | `POST` | `/auth/login` | Form fields `username` (email) and `password`; returns a token |
 | `GET` | `/auth/google/login` | Start Google sign-in (a browser redirect) |
 | `GET` | `/auth/google/callback` | Where Google sends the user back |
-| `GET`, `PATCH` | `/users/me` | Read or update the current user |
+| `GET`, `PATCH`, `DELETE` | `/users/me` | Read, update or delete the current user |
 | `GET` | `/exercises` | All exercises, ordered by muscle group |
 | `GET`, `POST` | `/workouts` | List workouts (newest first) or log one |
-| `GET`, `DELETE` | `/workouts/{id}` | Read or delete one workout |
+| `GET`, `PUT`, `DELETE` | `/workouts/{id}` | Read, edit or delete one workout |
 | `GET` | `/stats/streak` | Current and best streak, days trained this week |
 | `GET` | `/stats/heatmap` | Workout counts per day for the past year |
 | `GET` | `/health` | Checks that the database answers |
